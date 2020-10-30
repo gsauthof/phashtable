@@ -1,0 +1,167 @@
+:toc:
+:toc-placement!:
+:url-perfhash: https://en.wikipedia.org/wiki/Perfect_hash_function
+:url-fastrange: https://lemire.me/blog/2016/06/27/a-fast-alternative-to-the-modulo-reduction/
+:url-isin: https://en.wikipedia.org/wiki/International_Securities_Identification_Number
+:url-sdbm: http://www.cse.yorku.ca/~oz/hash.html
+
+
+This is a {url-perfhash}[perfect hashing] library for C/{cpp}.
+
+It's well suited for situations where the hash table is mostly static, e.g. where it's created at program startup.
+Or where updates only possibly happen in re-initialization phases where a complete rebuild of the hash table is perfectly fine.
+
+In contrast to a standard general purpose hash table, once it's constructed it's guaranteed that all lookups are collision free.
+That means that no table lookup requires a collision resolution strategy such as pointer chasing down a collision list or probing overflow slots in an open addressing scheme.
+Thus, each lookup is guaranteed to cost the same number of instructions which helps to reduce application https://en.wikipedia.org/wiki/Jitter[latency jitter].
+
+The resulting data structure is memory and runtime efficient.
+With 32 bit indexes it requires approximately 8.6 bytes per item and each lookup costs only 2 multiplications plus the costs for the key hash function.
+
+
+2020, Georg Sauthoff <mail@gms.tf>
+
+
+toc::[]
+
+
+== Example
+
+This repository contains a small example to demonstrate the usage of the phash library by hashing a bunch of {url-isin}[ISINs].
+
+Obtain some ISINs:
+
+....
+$ curl --tr-encoding -O https://georg.so/pub/isin-big-sample.lst
+$ curl --tr-encoding -O https://georg.so/pub/isin-small-sample.lst
+....
+
+Build the example:
+
+....
+$ make test_hash_table
+....
+
+Run it:
+
+....
+$ ./test_hash_table isin-big-sample.lst
+1405078 instruments
+Offset table size: 702539 slots (5620312 bytes),
+    Index table size: 1448441 slots (5793764 bytes), Total: 11414076 bytes
+$ ./test_hash_table isin-small-sample.lst
+2776 instruments
+Offset table size: 1388 slots (11104 bytes),
+    Index table size: 2934 slots (11736 bytes), Total: 22840 bytes
+....
+
+
+== Design
+
+The core of this design are two tables to implement a two level perfect hashing scheme.
+The slots of the first level store an offset into the second index table, the size of the secondary table and a parameter value for the parametrized hash function.
+The second table just stores indices into a user provided items array.
+
+That means with 32 bit indices a first level slot just occupies 8 bytes whereas a second level slot only uses 4 bytes.
+
+Using an index table at the second level reduces the memory usage of that table by half when the number of hashed items is smaller than `2**32`.
+
+The build procedure packs both tables very densely, i.e. with `n` items the first table is created with `n/2` slots and the secondary hash tables are very small with a high fill factor because changing the parameter of the key hash function often resolves collisions before the size has to be increased.
+
+The phash header includes a parametrized version of the general purpose {url-sdbm}[SDBM hash function].
+This function can be seen as a simple example of parametrization.
+Of course, the user is free to use any other hash function (as long as it's parametrized) although the SDBM hash function is very fast and works well in practice.
+Since the secondary hash tables are very small the parameter is small as well, i.e. it's only an 8 bit integer.
+
+Reducing the values of the key hash function to the first and second level hash table sizes is done by another hash function.
+For performance reasons, a multiplicative hashing scheme is selected, namely the very neat {url-fastrange}[fast range] method.
+
+
+== Space Usage
+
+This perfect hashing hash table requires approximately 8.6 bytes per item.
+
+In comparison, when using a standard hash table (of 32 bit integers to index
+into a data array) with open addressing that is only filled - say - 75 % to reduce
+collisions the space usage is 5 bytes per item.
+
+
+== Related Work
+
+The alternative to hashing based on multiplication is of course hashing based on division (by using the remainder of the division which can directly be obtained by using the modulo operation).
+Some considerations regarding hashing by division:
+
+Dividing by a power of 2 is very fast (on binary computers) because it's just a shift.
+However, this requires the usage of a somewhat higher quality -- and thus slower -- key hash function, i.e. one which distributes well over the whole word range (because only the least significant bits are used).
+Also, being restricted to hash table sizes of power of two's is quite restrictive and potentially wastes a lot of memory.
+
+Dividing by a prime has the nice property that it's more robust against relatively low-quality key hash functions.
+However, this requires using the `div` CPU instruction which is much slower than multiplication on current CPUs.
+A common way to speed up the modulo operation then is to replace the division by https://ridiculousfish.com/blog/posts/labor-of-division-episode-i.html[multiplications with magic numbers].
+That means a table of magic numbers for a bunch of useful primes has to be pre-computed.
+See for example https://databasearchitects.blogspot.com/2020/01/all-hash-table-sizes-you-will-ever-need.html[a 2020 blog article] that presents such a table that covers 
+the complete `2**64` space with 841 entries (using a 5 % spacing).
+Since this method doesn't directly computes the modulo, it requires two multiplications (and some extra arithmetic operations) per lookup in contrast to just one multiplication (and one constant word-sized shift) when using the {url-fastrange}[fast-range multiplication] method.
+The https://lemire.me/blog/2019/02/08/faster-remainders-when-the-divisor-is-a-constant-beating-compilers-and-libdivide/[fast-modulo method] improves on the fast division method (for 32 bit integers) by directly computing the modulo using pre-computed factors.
+However, it still requires two multiplications.
+
+In the context of perfect hashing, working with pre-computed factors for the secondary hash tables requires an additional lookup table (of these factors) which occupies one to two cache lines.
+
+There are other general purpose hash functions available that are better in some properties -- and -- are parametrizable where the parametrization was part of their original design.
+See for example https://en.wikipedia.org/wiki/SipHash[SipHash] which was created in 2012 and see also https://www.python.org/dev/peps/pep-0456/[PEP 456] for a 2013 roundup of similar hash functions.
+However, the very simple {url-sdbm}[SDBM hash function] (which is also used in GNU awk) is sufficient for our perfect hashing purposes and it's very fast.
+Because it's so compact it's certainly faster than -- say -- SipHash.
+
+Related is also the perfect hash function generator https://www.gnu.org/software/gperf/manual/gperf.html[gperf] (https://www.dre.vanderbilt.edu/~schmidt/PDF/C++-USENIX-90.pdf[see also the USENIX-90 paper]).
+In contrast to this library it's designed as a code generator, i.e. the perfect hashing hash table is generated at program  build time and is then static.
+That means it cannot be constructed fresh at -- say -- each program start.
+It also seems that gperf is targeted at smaller table sizes.
+For example, it doesn't terminate in a reasonable time frame when running it on `1.4 * 10**6` {url-isin]:ISINs.
+Furthermore, with a smaller number of items - say - a few thousands - gperf terminates but the resulting table is only filled by 10 % or so.
+That means it's not very space efficient.
+On the positive side, it just uses an one level scheme with a lookup table for key hash terms such that besides lookups only additions are necessary during item lookup.
+
+
+== Measurements
+
+Looking at the code it's plausible that this perfect hashing scheme is very efficient, that the sdbm hash function is very fast and that the item access latency doesn't jitter much (see also the previous sections).
+
+But is this also measurable?
+
+Yes, it is.
+
+This repository also contains a mirco-benchmark that probes all slots repeatedly.
+It compares this perfect hash table against `std::unordered_map` using 3 different hash functions.
+
+For example, the results on an Intel Atom C3758 (on Fedora 31, process pinned to an isolated core, frequency management disabled and OS Jitter minimized):
+
+
+....
+               ns       
+              min    max
+name                   
+ptable_sdbm  43.0   44.0
+ptable_sip   98.0  117.0
+ptable_stl   37.0   69.0
+umap_sdbm    22.0   61.0
+umap_sip     57.0  161.0
+umap_stl     30.0  101.0
+....
+
+This shows that accessing items through this perfect hashing table using the sdbm hash function just varies by 1 ns.
+Whereas using a standard hash-table increases the access latency jitter much due to having to resolve collisions for some items.
+Another source of excess latency is the key hash function itself as is especially visible when the alternatives to the sdbm hash function are used in perfect hashing.
+This is a consequence of the other hash functions doing more work.
+The `ptable_sdbm` result also shows that the two-level hashing doesn't come for free, which is plausible since the key hash function has to be called for each level.
+However, this levels the worst-case access costs up to best-case whereas in the umap results the worst-case access time increase by a factor of three (due to collisions etc).
+
+Of course, Intel Atom is a low-end CPU and results on more high-end CPUs are expected to differ, certainly in the absolute numbers.
+Thus, I'll publish some more results and details in a https://gms.tf[follow-up blog post].
+
+
+
+
+== License
+
+https://choosealicense.com/licenses/bsl-1.0/[Boost Software License 1.0]
+
