@@ -1,5 +1,10 @@
 #!/usr/bin/env python3
 
+# SPDX-FileCopyrightText: © 2020 Georg Sauthoff <mail@gms.tf>
+# SPDX-License-Identifier: BSL-1.0
+
+
+
 import numpy as np
 import pandas as pd
 
