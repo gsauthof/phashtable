@@ -83,7 +83,7 @@ This perfect hashing hash table requires approximately 8.6 bytes per item.
 
 In comparison, when using a standard hash table (of 32 bit integers to index
 into a data array) with open addressing that is only filled - say - 75 % to reduce
-collisions the space usage is 5 bytes per item.
+collisions the space usage is 5.33 bytes per item.
 
 
 == Related Work
