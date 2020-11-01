@@ -133,7 +133,7 @@ Yes, it is.
 This repository also contains a mirco-benchmark that probes all slots repeatedly.
 It compares this perfect hash table against `std::unordered_map` using 3 different hash functions.
 
-For example, the results on an Intel Atom C3758 (on Fedora 31, process pinned to an isolated core, frequency management disabled and OS Jitter minimized):
+For example, the results on an https://ark.intel.com/content/www/us/en/ark/products/97926/intel-atom-processor-c3758-16m-cache-up-to-2-20-ghz.html[Intel Atom C3758] (on Fedora 31, process pinned to an isolated core, frequency management disabled and OS Jitter minimized):
 
 
 ....
@@ -156,7 +156,30 @@ The `ptable_sdbm` result also shows that the two-level hashing doesn't come for 
 However, this levels the worst-case access costs up to best-case whereas in the umap results the worst-case access time increase by a factor of three (due to collisions etc).
 
 Of course, Intel Atom is a low-end CPU and results on more high-end CPUs are expected to differ, certainly in the absolute numbers.
-Thus, I'll publish some more results and details in a https://gms.tf[follow-up blog post].
+
+For example, the result for a https://ark.intel.com/content/www/us/en/ark/products/193969/intel-xeon-gold-6246-processor-24-75m-cache-3-30-ghz.html[Intel Xeon Gold 6246] (process also pinned to an isolated core, frequency management disabled and CPU frequency locked to 4.1 GHz, RHEL 7, GCC 9, etc.):
+
+....
+               ns
+              min   max
+name
+ptable_sdbm  11.0  12.0
+ptable_sip   34.0  35.0
+ptable_stl   10.0  11.0
+umap_sdbm     9.0  34.0
+umap_sip     22.0  55.0
+umap_stl     11.0  36.0
+....
+
+Of course, the absolute numbers are much better.
+However, similar to the Atom results, `ptable_sdbm` jitters only by 1 ns.
+Also similar, when using a standard hash table, access times differ by up to a factor of three or so.
+In contrast to the Atom, the selection of the hash function doesn't influence latency jitter for this perfect hashing implementation, anymore.
+Although the SIP hash function is still the most expensive hash function.
+Also in contrast to the Atom, `ptable_sdbm` item access times are pretty similar to the best case `umap` access times.
+
+
+I'll publish some more results and details in a https://gms.tf[follow-up blog post].
 
 
 
