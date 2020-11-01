@@ -12,10 +12,20 @@ import sys
 
 
 
+def forward_csv(f, prefix):
+    pos = 0
+    while True:
+        line = f.readline()
+        if not line or line.startswith(prefix):
+            f.seek(pos)
+            return f
+        pos += len(line.encode('utf-8'))
+
+
 def main():
     filenames = sys.argv[1:]
 
-    dfs = [ pd.read_csv(fn, skiprows=8) for fn in filenames[:3] ]
+    dfs = [ pd.read_csv(forward_csv(open(fn), 'name,iter')) for fn in filenames[:3] ]
 
     df = pd.merge(pd.merge(dfs[0], dfs[1], on='name'), dfs[2], on='name')
 
