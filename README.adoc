@@ -62,6 +62,34 @@ The core of this design are two tables to implement a two level perfect hashing 
 The slots of the first level store an offset into the second index table, the size of the secondary table and a parameter value for the parametrized hash function.
 The second table just stores indices into a user provided items array.
 
+.phashtable two-level perfect hashing lookup scheme
+....
+ ┌───────┐                        ┌─────────────┐                           ┌───────────┐
+ │ value │ ◀───────────────────── │ value_table │ ◀──────────────────────── │ idx_table │
+ └───────┘                        └─────────────┘                           └───────────┘
+                                                                                      ▲
+                                                                                      │
+                                                                                      │
+ ┌───┐                            ┌───────────┐                                     ┌───┐
+ │ 0 │                            │    off    │ ──────────────────────────────────▶ │ + │
+ └───┘                            └───────────┘                                     └───┘
+   │                                ▲                                                 ▲
+   │                                │                                                 │
+   ▼                                │                                                 │
+ ┌──────┐     ┌─────────────┐     ┌───────────┐     ┌───────┐     ┌──────┐     ┌────────┐
+ │ hash │ ──▶ │   lookup    │ ──▶ │ bkt_table │ ──▶ │ param │ ──▶ │ hash │ ──▶ │ lookup │
+ └──────┘     └─────────────┘     └───────────┘     └───────┘     └──────┘     └────────┘
+   ▲            ▲                   │                               ▲            ▲
+   │            │                   │                               │            │
+   │            │                   ▼                               │            │
+   │          ┌─────────────┐     ┌───────────┐                     │            │
+   │          │ bkt_table_n │     │     n     │ ────────────────────┼────────────┘
+   │          └─────────────┘     └───────────┘                     │
+ ┌──────┐                                                           │
+ │ key  │ ──────────────────────────────────────────────────────────┘
+ └──────┘
+....
+
 That means with 32 bit indices a first level slot just occupies 8 bytes whereas a second level slot only uses 4 bytes.
 
 Using an index table at the second level reduces the memory usage of that table by half when the number of hashed items is smaller than `2**32`.
