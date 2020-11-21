@@ -58,11 +58,11 @@ int main(int argc, char **argv)
         return 1;
     }
 
-    printf("Offset table size: %" PRIu32 " slots (%zu bytes), Index table size: %"
+    printf("Bucket table size: %" PRIu32 " slots (%zu bytes), Index table size: %"
             PRIu32 " slots (%zu bytes), Total: %zu bytes\n",
-            h.off_table_n, sizeof h.off_table[0] * h.off_table_n,
+            h.bkt_table_n, sizeof h.bkt_table[0] * h.bkt_table_n,
             h.idx_table_n, sizeof h.idx_table[0] * h.idx_table_n,
-            sizeof h.off_table[0] * h.off_table_n + sizeof h.idx_table[0] * h.idx_table_n
+            sizeof h.bkt_table[0] * h.bkt_table_n + sizeof h.idx_table[0] * h.idx_table_n
             );
 
 

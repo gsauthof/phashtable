@@ -47,11 +47,11 @@ Run it:
 ....
 $ ./test_hash_table isin-big-sample.lst
 1405078 instruments
-Offset table size: 702539 slots (5620312 bytes),
+Bucket table size: 702539 slots (5620312 bytes),
     Index table size: 1448441 slots (5793764 bytes), Total: 11414076 bytes
 $ ./test_hash_table isin-small-sample.lst
 2776 instruments
-Offset table size: 1388 slots (11104 bytes),
+Bucket table size: 1388 slots (11104 bytes),
     Index table size: 2934 slots (11736 bytes), Total: 22840 bytes
 ....
 

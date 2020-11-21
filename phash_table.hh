@@ -37,26 +37,26 @@ namespace gms {
         Phash_Table &operator=(const Phash_Table &) =delete;
         Phash_Table(Phash_Table &&o)
         {
-            off_table = o.off_table;
+            bkt_table = o.bkt_table;
             idx_table = o.idx_table;
-            off_table_n = o.off_table_n;
+            bkt_table_n = o.bkt_table_n;
             idx_table_n = o.idx_table_n;
 
-            o.off_table = nullptr;
+            o.bkt_table = nullptr;
             o.idx_table = nullptr;
-            o.off_table_n = 0;
+            o.bkt_table_n = 0;
             o.idx_table_n = 0;
         }
         Phash_Table &operator=(Phash_Table &&o)
         {
-            off_table = o.off_table;
+            bkt_table = o.bkt_table;
             idx_table = o.idx_table;
-            off_table_n = o.off_table_n;
+            bkt_table_n = o.bkt_table_n;
             idx_table_n = o.idx_table_n;
 
-            o.off_table = nullptr;
+            o.bkt_table = nullptr;
             o.idx_table = nullptr;
-            o.off_table_n = 0;
+            o.bkt_table_n = 0;
             o.idx_table_n = 0;
             return *this;
         }

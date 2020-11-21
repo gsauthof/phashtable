@@ -11,17 +11,17 @@
 extern "C" {
 #endif
 
-struct Gms_Phash_Elem {
+struct Gms_Phash_Bucket {
     uint32_t off;      // offset into Gms_Phash_Table::idx_table
     uint8_t  n;        // secondary hash table size
     uint8_t  param;    // hash function parameter/seed to resolve collisions
 };
-typedef struct Gms_Phash_Elem Gms_Phash_Elem;
+typedef struct Gms_Phash_Bucket Gms_Phash_Bucket;
 
 struct Gms_Phash_Table {
-    Gms_Phash_Elem  *off_table;     // offsets into idx_table
+    Gms_Phash_Bucket  *bkt_table;     // offsets into idx_table
     uint32_t        *idx_table;
-    uint32_t         off_table_n;
+    uint32_t         bkt_table_n;
     uint32_t         idx_table_n;
 };
 typedef struct Gms_Phash_Table Gms_Phash_Table;
@@ -39,9 +39,9 @@ static inline uint32_t gms_phash_table_lookup(const Gms_Phash_Table *h, const vo
 {
     uint32_t x = hfn(p, 0, 0);
 
-    uint32_t i = (uint64_t)x * h->off_table_n >> 32;
+    uint32_t i = (uint64_t)x * h->bkt_table_n >> 32;
 
-    const Gms_Phash_Elem *o = h->off_table + i;
+    const Gms_Phash_Bucket *o = h->bkt_table + i;
 
     // the expected case is that o->param is 0
     // if it's zero we could just assign x to y
