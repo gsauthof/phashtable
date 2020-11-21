@@ -4,6 +4,7 @@
 // SPDX-FileCopyrightText: © 2020 Georg Sauthoff <mail@gms.tf>
 // SPDX-License-Identifier: BSL-1.0
 
+#include <stddef.h> // size_t
 
 struct Instrument {
     char isin[12 + 1];
