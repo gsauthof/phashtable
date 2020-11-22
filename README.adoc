@@ -207,7 +207,7 @@ Although the SIP hash function is still the most expensive hash function.
 Also in contrast to the Atom, `ptable_sdbm` item access times are pretty similar to the best case `umap` access times.
 
 
-I'll publish some more results and details in a https://gms.tf[follow-up blog post].
+I'll publish some more results and details in a https://gms.tf/perfect-hashing.html[follow-up blog post].
 
 
 
