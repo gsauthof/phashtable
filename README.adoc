@@ -144,7 +144,7 @@ Related is also the perfect hash function generator https://www.gnu.org/software
 In contrast to this library it's designed as a code generator, i.e. the perfect hashing hash table is generated at program  build time and is then static.
 That means it cannot be constructed fresh at -- say -- each program start.
 It also seems that gperf is targeted at smaller table sizes.
-For example, it doesn't terminate in a reasonable time frame when running it on `1.4 * 10**6` {url-isin]:ISINs.
+For example, it doesn't terminate in a reasonable time frame when running it on `1.4 * 10**6` {url-isin}:ISINs.
 Furthermore, with a smaller number of items - say - a few thousands - gperf terminates but the resulting table is only filled by 10 % or so.
 That means it's not very space efficient.
 On the positive side, it just uses an one level scheme with a lookup table for key hash terms such that besides lookups only additions are necessary during item lookup.
@@ -207,7 +207,7 @@ Although the SIP hash function is still the most expensive hash function.
 Also in contrast to the Atom, `ptable_sdbm` item access times are pretty similar to the best case `umap` access times.
 
 
-I'll publish some more results and details in a https://gms.tf/perfect-hashing.html[follow-up blog post].
+See also my https://gms.tf/perfect-hashing.html[follow-up blog post] for a more graphical presentation of the results.
 
 
 
