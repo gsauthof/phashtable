@@ -1,0 +1,47 @@
+digraph T {
+
+    rankdir="LR";
+    size="8,2";
+    ratio=fill;
+    splines=ortho;
+
+    node [shape=rectangle];
+
+
+    hash_1st [label="hash"];
+    hash_2nd [label="hash"];
+
+    lookup_1st [label="lookup"];
+    lookup_2nd [label="lookup"];
+
+    key -> hash_1st;
+    0  -> hash_1st;
+
+    hash_1st -> lookup_1st;
+    bkt_table_n  -> lookup_1st;
+
+    lookup_1st -> bkt_table;
+
+    bkt_table -> off;
+    bkt_table -> n;
+    bkt_table -> param;
+
+
+    key -> hash_2nd;
+    n -> lookup_2nd;
+    param -> hash_2nd;
+
+    add [label="+"];
+
+    hash_2nd -> lookup_2nd;
+
+    off -> add;
+    lookup_2nd -> add;
+
+    add -> idx_table;
+
+    idx_table -> value_table;
+
+    value_table -> value;
+
+}

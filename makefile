@@ -62,6 +62,17 @@ testxx: testxx.o phash_table.o
 
 TEMP += testxx testxx.o phash_table.o
 
+
+TEMP += libphash-lookup.svg libphash-lookup.pdf
+
+
+%.pdf: %.dot
+	dot -Tpdf $<.dot -o$@.pdf
+
+%.svg: %.dot
+	dot -Tsvg $<.dot -o$@.svg
+
 .PHONY: clean
 clean:
 	rm -rf $(TEMP)
+
